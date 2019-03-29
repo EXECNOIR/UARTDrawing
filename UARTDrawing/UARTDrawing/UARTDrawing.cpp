@@ -12,19 +12,31 @@
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include <SDL2/SDL2_gfxPrimitives_font.h>
 
-
+typedef enum state {
+	START,
+	ERASE
+}state_t;
 const int SCREEN_WIDTH = 480;
 const int SCREEN_HEIGHT = 270;
 int ch;
-Uint32 color;
-int size;
+Uint32 color = 0xFFFFFFFF;
+int red = 255;
+int green = 255;
+int blue = 255;
+int alpha = 255;
+int size = 6;
+int x;
+int y;
+int janos = 0;
+
 
 std::string szar;
 DWORD read, written, eventMask, bytesRead;
 HANDLE screen = GetStdHandle(STD_OUTPUT_HANDLE);
 COMMTIMEOUTS timeouts;
 HANDLE myPortHandle;
-
+state_t gameState = START;
+std::vector<int> previousState;
 
 void draw();
 
@@ -43,75 +55,129 @@ SDL_Renderer* gRenderer = nullptr;
 
 void draw()
 {
-	int x = getCoordinateX(myPortHandle);
-	int y = getCoordinateY(myPortHandle);
+	switch (gameState) {
+	case START:
+		x = getCoordinateX(myPortHandle);
+		y = getCoordinateY(myPortHandle);
 
-	if (x > 384 && y > 225) {  // jóóóóóóóóóóóóó clear      VASTAGSÁG // SZÍN // RADÍR // WORK IN PROG. // CLEAR
-		SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0x00);
-		SDL_RenderClear(gRenderer);
-		SDL_RenderPresent(gRenderer);
-		x = 1;
-		y = 1;
-		//SDL_Delay(500);
-	}else if (x > 192 && x < 288 && y > 225) {  //RADÍRGENYÓ
+		if (x > 384 && y > 225) {  // jóóóóóóóóóóóóó clear      VASTAGSÁG // SZÍN // RADÍR // WORK IN PROG. // CLEAR
+			SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0x00);
+			SDL_RenderClear(gRenderer);
+			SDL_RenderPresent(gRenderer);
+			x = 1;
+			y = 1;
+			//SDL_Delay(500);
+		}
+		else if (x > 192 && x < 288 && y > 225) {  //RADÍRGENYÓ
 
+			previousState.push_back(red);
+			previousState.push_back(green);
+			previousState.push_back(blue);
+			previousState.push_back((int)size);
+
+			gameState = ERASE;
+			x = 1;
+			y = 1;
+
+		}
+		else if (x > 96 && x < 192 && y > 225) {  //SZÍN     FEHÉR // PIROS // KÉK // ZÖLD // LILA
+			x = getCoordinateX(myPortHandle);
+			y = getCoordinateY(myPortHandle);
+
+			if (x > 384 && y > 225) {  //lila
+				red = 255;
+				blue = 255;
+				green = 0;
+			}
+			else if (x > 288 && x < 384 && y > 225) { //zöld
+				red = 0;
+				blue = 0;
+				green = 255;
+			}
+			else if (x > 192 && x < 288 && y > 225) {  //kék
+				red = 0;
+				blue = 255;
+				green = 0;
+			}
+			else if (x > 96 && x < 192 && y > 225) {  //piros
+				red = 255;
+				blue = 0;
+				green = 0;
+			}
+			else if (x < 96 && y > 225) {  //fehér
+				red = 255;
+				blue = 255;
+				green = 255;
+			}
+			x = 1;
+			y = 1;
+		}
+		else if (x < 96 && y > 225) {  // vastagság
+			x = getCoordinateX(myPortHandle);
+			y = getCoordinateY(myPortHandle);
+			if (x > 384 && y > 225) {
+				size = 10;
+			}
+			else if (x > 288 && x < 384 && y > 225) {
+				size = 8;
+			}
+			else if (x > 192 && x < 288 && y > 225) {
+				size = 6;
+			}
+			else if (x > 96 && x < 192 && y > 225) {
+				size = 4;
+			}
+			else if (x < 96 && y > 225) {
+				size = 2;
+			}
+			x = 1;
+			y = 1;
+		}
+		else if (x > 288 && x < 384 && y > 225) {  //semmi
+			//semmi(titok)
+		}
+		else {
+			//size = 4;
+			//color = 0xFF0000FF;
+			int result = filledCircleRGBA(gRenderer, x, y, size, red, green, blue, alpha);
+			std::cout << result << std::endl;
+		}
+		break;
+	case ERASE:
+		if (janos == 0) {
+			janos = 1;
+			gameState = START;
+			return;
+		}
+		janos = 0;
+		std::cout << "janos" << std::endl;
+		red = 0;
+		green = 0;
+		blue = 0;
 		size = 10;
-		color = 0x00;
-		x = 1;
-		y = 1;
 
-	}
-	else if(x > 96 && x < 192 && y > 225){  //SZÍN     FEHÉR // PIROS // KÉK // ZÖLD // LILA
 		x = getCoordinateX(myPortHandle);
 		y = getCoordinateY(myPortHandle);
+		
+		
 
-		if (x > 384 && y > 225) {  //lila
-			color = 0x800080;
+		if (x > 192 && x < 288 && y > 225) {  //RADÍRGENYÓ
+			red = previousState[0];
+			green = previousState[1];
+			blue = previousState[2];
+			size = previousState[3];
+			previousState.clear();
+			gameState = START;
+			x = 1;
+			y = 1;
+
 		}
-		else if (x > 288 && x < 384 && y > 225) { //zöld
-			color = 0x008000;
+		else {
+			int result = filledCircleRGBA(gRenderer, x, y, size, red, green, blue, alpha);
+			std::cout << result << std::endl;
 		}
-		else if (x > 192 && x < 288 && y > 225) {  //kék
-			color = 0x0000FF;
-		}
-		else if (x > 96 && x < 192 && y > 225) {  //piros
-			color = 0xFF0000;
-		}
-		else if(x < 96 && y > 225){  //fehér
-			color = 0xFFFFFF;
-		}
-		x = 1;
-		y = 1;
 	}
-	else if (x < 96 && y > 225) {  // vastagság
-		x = getCoordinateX(myPortHandle);
-		y = getCoordinateY(myPortHandle);
-		if (x > 384 && y > 225) {
-			size = 10;
-		}
-		else if (x > 288 && x < 384 && y > 225) {
-			size = 8;
-		}
-		else if (x > 192 && x < 288 && y > 225) {
-			size = 6;
-		}
-		else if (x > 96 && x < 192 && y > 225) {
-			size = 4;
-		}
-		else if (x < 96 && y > 225) {
-			size = 2;
-		}
-		x = 1;
-		y = 1;
-	}
-	else if (x > 288 && x < 384 && y > 225) {  //semmi
-		//semmi(titok)
-	}
-	else {
-		//size = 4;
-		//color = 0xFF0000FF;
-		int result = filledCircleColor(gRenderer, x, y, size, color);
-	}
+	
 
 	
 
