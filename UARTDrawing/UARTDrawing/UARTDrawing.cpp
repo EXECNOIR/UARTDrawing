@@ -11,13 +11,15 @@
 #include <string>
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include <SDL2/SDL2_gfxPrimitives_font.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_render.h>
 
 typedef enum state {
 	START,
 	ERASE
 }state_t;
-const int SCREEN_WIDTH = 480;
-const int SCREEN_HEIGHT = 270;
+const int SCREEN_WIDTH = 480*2;
+const int SCREEN_HEIGHT = 270*2;
 int ch;
 Uint32 color = 0xFFFFFFFF;
 int red = 255;
@@ -53,23 +55,31 @@ void resetClear(HANDLE myPortHandle);
 SDL_Window* gWindow = nullptr;
 SDL_Renderer* gRenderer = nullptr;
 
-void draw()
+
+
+
+
+
+void draw(SDL_Texture &texture)
 {
 	switch (gameState) {
 	case START:
-		x = getCoordinateX(myPortHandle);
-		y = getCoordinateY(myPortHandle);
+		x = getCoordinateX(myPortHandle)*2;
+		y = getCoordinateY(myPortHandle)*2;
+		//std::cout << "x: " << x << std::endl;
+		//std::cout << "y: " << y << std::endl;
 
-		if (x > 384 && y > 225) {  // jóóóóóóóóóóóóó clear      VASTAGSÁG // SZÍN // RADÍR // WORK IN PROG. // CLEAR
+		if (x > 768 && y > 450) {  // jóóóóóóóóóóóóó clear      VASTAGSÁG // SZÍN // RADÍR // WORK IN PROG. // CLEAR
 			SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0x00);
 			SDL_RenderClear(gRenderer);
 			SDL_RenderPresent(gRenderer);
+			//std::cout << "clear" << std::endl;
 			x = 1;
 			y = 1;
 			//SDL_Delay(500);
 		}
-		else if (x > 192 && x < 288 && y > 225) {  //RADÍRGENYÓ
-
+		else if (x > 384 && x < 576 && y > 450) {  //RADÍRGENYÓ
+			//std::cout << "erasestate" << std::endl;
 			previousState.push_back(red);
 			previousState.push_back(green);
 			previousState.push_back(blue);
@@ -80,31 +90,36 @@ void draw()
 			y = 1;
 
 		}
-		else if (x > 96 && x < 192 && y > 225) {  //SZÍN     FEHÉR // PIROS // KÉK // ZÖLD // LILA
-			x = getCoordinateX(myPortHandle);
-			y = getCoordinateY(myPortHandle);
-
-			if (x > 384 && y > 225) {  //lila
+		else if (x > 192 && x < 384 && y > 450) {  //SZÍN     FEHÉR // PIROS // KÉK // ZÖLD // LILA
+			x = getCoordinateX(myPortHandle)*2;
+			y = getCoordinateY(myPortHandle)*2;
+			//std::cout << "color" << std::endl;
+			if (x > 768 && y > 450) { //lila
+				//std::cout << "purple" << std::endl;
 				red = 255;
 				blue = 255;
 				green = 0;
 			}
-			else if (x > 288 && x < 384 && y > 225) { //zöld
+			else if (x > 576 && x < 768 && y > 450) { //zöld
+				//std::cout << "green" << std::endl;
 				red = 0;
 				blue = 0;
 				green = 255;
 			}
-			else if (x > 192 && x < 288 && y > 225) {  //kék
+			else if (x > 384 && x < 576 && y > 450) {  //kék
+				//std::cout << "blue" << std::endl;
 				red = 0;
 				blue = 255;
 				green = 0;
 			}
-			else if (x > 96 && x < 192 && y > 225) {  //piros
+			else if (x > 192 && x < 384 && y > 450) {  //piros
+				//std::cout << "red" << std::endl;
 				red = 255;
 				blue = 0;
 				green = 0;
 			}
-			else if (x < 96 && y > 225) {  //fehér
+			else if (x < 192 && y > 450) {  //fehér
+				//std::cout << "white" << std::endl;
 				red = 255;
 				blue = 255;
 				green = 255;
@@ -112,35 +127,44 @@ void draw()
 			x = 1;
 			y = 1;
 		}
-		else if (x < 96 && y > 225) {  // vastagság
-			x = getCoordinateX(myPortHandle);
-			y = getCoordinateY(myPortHandle);
-			if (x > 384 && y > 225) {
-				size = 10;
+		else if (x < 192 && y > 450) {  // vastagság
+			//std::cout << "thickness" << std::endl;
+			x = getCoordinateX(myPortHandle)*2;
+			y = getCoordinateY(myPortHandle)*2;
+			if (x > 768 && y > 450) {
+				//std::cout << "size 10" << std::endl;
+				size = 20;
 			}
-			else if (x > 288 && x < 384 && y > 225) {
+			else if (x > 576 && x < 768 && y > 450) {
+				//std::cout << "size 8" << std::endl;
+				size = 16;
+			}
+			else if (x > 384 && x < 576 && y > 450) {
+				//std::cout << "size 6" << std::endl;
+				size = 12;
+			}
+			else if (x > 192 && x < 384 && y > 450) {
+				//std::cout << "size 4" << std::endl;
 				size = 8;
 			}
-			else if (x > 192 && x < 288 && y > 225) {
-				size = 6;
-			}
-			else if (x > 96 && x < 192 && y > 225) {
+			else if (x < 192 && y > 450) {
+				//std::cout << "size 2" << std::endl;
 				size = 4;
-			}
-			else if (x < 96 && y > 225) {
-				size = 2;
 			}
 			x = 1;
 			y = 1;
 		}
-		else if (x > 288 && x < 384 && y > 225) {  //semmi
+		else if (x > 576 && x < 768 && y > 450) {  //semmi
 			//semmi(titok)
+			//std::cout << "literally nothing" << std::endl;
+			SDL_Rect rect = { 1, 1, 1100, 739 };
+			SDL_RenderCopyEx(gRenderer, &texture, nullptr, &rect, 0.0, nullptr, SDL_FLIP_NONE);
 		}
 		else {
 			//size = 4;
 			//color = 0xFF0000FF;
 			int result = filledCircleRGBA(gRenderer, x, y, size, red, green, blue, alpha);
-			std::cout << result << std::endl;
+			//std::cout << result << std::endl;
 		}
 		break;
 	case ERASE:
@@ -150,18 +174,19 @@ void draw()
 			return;
 		}
 		janos = 0;
-		std::cout << "janos" << std::endl;
+		//std::cout << "janos" << std::endl;
 		red = 0;
 		green = 0;
 		blue = 0;
-		size = 10;
+		size = 25;
 
-		x = getCoordinateX(myPortHandle);
-		y = getCoordinateY(myPortHandle);
+		x = getCoordinateX(myPortHandle)*2;
+		y = getCoordinateY(myPortHandle)*2;
 		
 		
 
-		if (x > 192 && x < 288 && y > 225) {  //RADÍRGENYÓ
+		if (x > 384 && x < 576 && y > 450) {  //RADÍRGENYÓ
+			//std::cout << "drawstate" << std::endl;
 			red = previousState[0];
 			green = previousState[1];
 			blue = previousState[2];
@@ -174,7 +199,7 @@ void draw()
 		}
 		else {
 			int result = filledCircleRGBA(gRenderer, x, y, size, red, green, blue, alpha);
-			std::cout << result << std::endl;
+			//std::cout << result << std::endl;
 		}
 	}
 	
@@ -227,6 +252,8 @@ void close()
 
 int main(int argc, char* args[])
 {
+	
+
 	if (!init())
 	{
 		std::cout << "Failed to initialize!" << std::endl;
@@ -238,6 +265,17 @@ int main(int argc, char* args[])
 
 	SDL_Event e;
 
+	SDL_Surface* loadedSurface = IMG_Load("mona_1.png");
+	if (loadedSurface == nullptr)
+	{
+		SDL_Log("szar");
+	}
+	SDL_Texture* texture = SDL_CreateTextureFromSurface(gRenderer, loadedSurface);
+	if (texture == NULL) {
+		fprintf(stderr, "CreateTextureFromSurface failed: %s\n", SDL_GetError());
+		exit(1);
+	}
+	SDL_FreeSurface(loadedSurface);
 
 	myPortHandle = CreateFile(TEXT("\\\\.\\COM5"),
 		GENERIC_READ | GENERIC_WRITE,
@@ -251,7 +289,6 @@ int main(int argc, char* args[])
 	if (myPortHandle == INVALID_HANDLE_VALUE) {
 		printf("CreateFile failed with error %d.\n", GetLastError());
 	}
-
 
 	DCB serialParams = { 0 };
 	serialParams.DCBlength = sizeof(serialParams);
@@ -294,7 +331,7 @@ int main(int argc, char* args[])
 		//SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
 		//SDL_RenderClear(gRenderer);
 		
-		draw();
+		draw(*texture);
 
 		//Update screen
 		SDL_RenderPresent(gRenderer);
@@ -345,7 +382,7 @@ int getCoordinateX(HANDLE myPortHandle)
 		
 	}
 
-	std::cout << "x: " << cordX << std::endl;
+	//std::cout << "x: " << cordX << std::endl;
 	int number = std::stoi(cordX);
 	
 	return number;
@@ -389,7 +426,7 @@ int getCoordinateY(HANDLE myPortHandle)
 
 	}
 
-	std::cout << "y: " << cordY << std::endl;
+	//std::cout << "y: " << cordY << std::endl;
 	int number = std::stoi(cordY);
 	
 	return number;
